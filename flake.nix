@@ -59,6 +59,8 @@
           packages.default = nixTestPackage;
           
           apps.output1 = nixTestApp;
+
+          apps.default = nixTestApp;
         }
 
     );
