@@ -24,7 +24,7 @@
         };
     
       
-        myPackage =
+        nixTestPackage =
             pkgs.mkSpagoDerivation {
               spagoYaml = ./spago.yaml;
               spagoLock = ./spago.lock;
@@ -39,36 +39,26 @@
               };
             };
 
-        myScript = pkgs.runCommand "my-script" {} ''
+        runCompiledScriptWithNode = pkgs.runCommand "run-compiled-with-node" {} ''
             mkdir -p $out
-            cat > $out/script <<EOF
+            cat > $out/run-compiled-with-node.sh <<EOF
             #!/bin/sh
-            exec ${pkgs.nodejs}/bin/node ${myPackage}/main.min.js "\$@"
+            exec ${pkgs.nodejs}/bin/node ${nixTestPackage}/main.min.js "\$@"
             EOF
-            chmod +x $out/script 
+            chmod +x $out/run-compiled-with-node.sh 
           '';
 
 
+        nixTestApp = { 
+            type = "app";
+            program = "${runCompiledScriptWithNode}/run-compiled-with-node.sh";
+        };
+
       in     
         {
-          packages.default = myPackage;
-
-          # output1 = { 
-          #  type = "app";
-          #  program = toString (pkgs.writeScriptBin "myscript" ''
-            #    echo "foo"
-            #  '');
-            # };
-        #
+          packages.default = nixTestPackage;
           
-          apps.output1 = { 
-              type = "app";
-              program = "${myScript}/script";
-            # program = pkgs.writeScriptBin "myscript" ''
-            #    echo "foo"
-            #  '';
-          };
-
+          apps.output1 = nixTestApp;
         }
 
     );
