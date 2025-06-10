@@ -14,3 +14,6 @@ workspace:
     wire:
       git: https://github.com/robertdp/purescript-wire.git
       ref: v0.4.2
+    halogen-svg-elems:
+      git: https://github.com/shamansir/purescript-halogen-svg-elems.git
+      ref: 2bc876ede676dba9544f03ab3caa618f35621e2c

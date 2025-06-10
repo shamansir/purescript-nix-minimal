@@ -7,5 +7,10 @@ import Effect.Console (log)
 
 main :: Effect Unit
 main = do
-  log "🍝"
+  uid <- generate_
+  log "🍝 <<<"
+  log uid
+
+
+foreign import generate_ ∷ Effect String
 
