@@ -4,6 +4,7 @@ package:
     - console
     - effect
     - prelude
+    - fft-js
   test:
     main: Test.Main
     dependencies: []
@@ -11,9 +12,12 @@ workspace:
   packageSet:
     registry: 65.0.0
   extraPackages: # {}
-    wire:
-      git: https://github.com/robertdp/purescript-wire.git
-      ref: v0.4.2
-    halogen-svg-elems:
-      git: https://github.com/shamansir/purescript-halogen-svg-elems.git
-      ref: 2bc876ede676dba9544f03ab3caa618f35621e2c
+    # wire:
+    #  git: "https://github.com/robertdp/purescript-wire.git"
+    #  ref: "v0.4.2"
+    #halogen-svg-elems:
+    #  git: "https://github.com/shamansir/purescript-halogen-svg-elems.git"
+    #  ref: "2bc876ede676dba9544f03ab3caa618f35621e2c"
+    fft-js:
+      git: "https://github.com/jeslie0/purescript-fft-js.git"
+      ref: "a1d19ae08f577b2a777613566e403b3455c5bb64"
