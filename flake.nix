@@ -1,46 +1,75 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
-    purescript-overlay = {
-      url = "github:thomashoneyman/purescript-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+    ps-overlay.url = "github:thomashoneyman/purescript-overlay";
+    mkSpagoDerivation = { 
+      url = "github:jeslie0/mkSpagoDerivation";
+      inputs = {
+        registry.url = "github:purescript/registry/fe3f499706755bb8a501bf989ed0f592295bb4e3";
+        registry-index.url = "github:purescript/registry-index/a349ca528812c89915ccc98cfbd97c9731aa5d0b";
+      };
     };
   };
 
-  outputs = { self, nixpkgs, ... }@inputs:
-    let
-      supportedSystems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
+  outputs = { self, nixpkgs, flake-utils, ps-overlay, mkSpagoDerivation }:
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ mkSpagoDerivation.overlays.default
+                       ps-overlay.overlays.default
+                     ];
+        };
+    
+      
+        myPackage =
+            pkgs.mkSpagoDerivation {
+              spagoYaml = ./spago.yaml;
+              spagoLock = ./spago.lock;
+              src = ./.;
+              version = "0.1.0";
+              nativeBuildInputs = [ pkgs.esbuild pkgs.purs-backend-es pkgs.purs-unstable pkgs.spago-unstable ];
+              buildPhase = "spago build --output ./output-es && purs-backend-es bundle-app --no-build --minify --to=main.min.js";
+              installPhase = "mkdir $out; cp -r main.min.js $out";
+              buildNodeModulesArgs = {
+                npmRoot = ./.;
+                nodejs = pkgs.nodejs;
+              };
+            };
 
-      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+        myScript = pkgs.runCommand "my-script" {} ''
+            mkdir -p $out
+            cat > $out/script <<EOF
+            #!/bin/sh
+            exec ${pkgs.nodejs}/bin/node ${myPackage}/main.min.js "\$@"
+            EOF
+            chmod +x $out/script 
+          '';
 
-      nixpkgsFor = forAllSystems (system: import nixpkgs {
-        inherit system;
-        config = { };
-        overlays = builtins.attrValues self.overlays;
-      });
-    in {
-      overlays = {
-        purescript = inputs.purescript-overlay.overlays.default;
-      };
 
-      packages = forAllSystems (system:
-        let pkgs = nixpkgsFor.${system}; in {
-          default = pkgs.hello; # your package here
-        });
+      in     
+        {
+          packages.default = myPackage;
 
-      devShells = forAllSystems (system:
-        # pkgs now has access to the standard PureScript toolchain
-        let pkgs = nixpkgsFor.${system}; in {
-          default = pkgs.mkShell {
-            name = "my-purescript-project";
-            inputsFrom = builtins.attrValues self.packages.${system};
-            buildInputs = with pkgs; [
-              purs
-              spago-unstable
-              purs-tidy-bin.purs-tidy-0_10_0
-              purs-backend-es
-            ];
+          # output1 = { 
+          #  type = "app";
+          #  program = toString (pkgs.writeScriptBin "myscript" ''
+            #    echo "foo"
+            #  '');
+            # };
+        #
+          
+          apps.output1 = { 
+              type = "app";
+              program = "${myScript}/script";
+            # program = pkgs.writeScriptBin "myscript" ''
+            #    echo "foo"
+            #  '';
           };
-        });
-  };
+
+        }
+
+    );
 }

@@ -10,4 +10,7 @@ package:
 workspace:
   packageSet:
     registry: 65.0.0
-  extraPackages: {}
+  extraPackages: # {}
+    wire:
+      git: https://github.com/robertdp/purescript-wire.git
+      ref: v0.4.2

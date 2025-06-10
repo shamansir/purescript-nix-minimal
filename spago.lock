@@ -563,7 +563,12 @@
         "zipperarray": "2.0.0"
       }
     },
-    "extra_packages": {}
+    "extra_packages": {
+      "wire": {
+        "git": "https://github.com/robertdp/purescript-wire.git",
+        "ref": "v0.4.2"
+      }
+    }
   },
   "packages": {
     "console": {
